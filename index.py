@@ -124,20 +124,19 @@ def webhook():
     if not result:
         result = f"❌ 找不到與「{keyword}」有關的新聞，請試試其他關鍵字。"
 
-    return make_response(jsonify({"fulfillmentText": result}))
-
+        return make_response(jsonify({"fulfillmentText": result}))
 
 
     elif action == "input.unknown":
-        user_input = req["queryResult"]["queryText"]
-        api_key = os.getenv("API_KEY")  
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.0-flash')
-        response = model.generate_content(user_input)
-        reply = response.text
-        return make_response(jsonify({"fulfillmentText": reply}))
+    	user_input = req["queryResult"]["queryText"]
+    	api_key = os.getenv("API_KEY")
+    	genai.configure(api_key=api_key)
+    	model = genai.GenerativeModel('gemini-2.0-flash')
+    	response = model.generate_content(user_input)
+    	reply = response.text
 
-    
+    	return make_response(jsonify({"fulfillmentText": reply}))
+
     return make_response(jsonify({"fulfillmentText": "目前無法處理此請求"}))
 
 if __name__ == "__main__":
