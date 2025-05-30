@@ -44,7 +44,7 @@ def news():
             if img_url and img_url.startswith("//"):
                 img_url = "https:" + img_url
 
-        # 嘗試找出同一則新聞的發佈時間
+        
         parent = tag.find_parent("div", class_="piece")
         time_text = ""
         if parent:
@@ -52,7 +52,7 @@ def news():
             if time_tag:
                 time_text = time_tag.text.strip()
 
-        # 修正連結
+        
         if link.startswith("//"):
             link = "https:" + link
         elif link.startswith("/"):
@@ -77,7 +77,6 @@ def webhook():
     req = request.get_json(force=True)
     action = req.get("queryResult", {}).get("action")
 
-    # 查詢新聞
     if action == "getTechNews":
         keyword = req.get("queryResult", {}).get("parameters", {}).get("news_topic", "")
         docs = db.collection("科技新聞").get()
