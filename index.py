@@ -29,7 +29,6 @@ def news():
     response = requests.get(url, headers=headers)
     response.encoding = "utf-8"
     soup = BeautifulSoup(response.text, "html.parser")
-
     news_items = soup.select("div.piece.clearfix")
     count = 0
 
@@ -100,7 +99,7 @@ def webhook():
         return make_response(jsonify({"fulfillmentText": reply}))
 
     
-    return make_response(jsonify({"fulfillmentText": }))
+    return make_response(jsonify({"fulfillmentText": "目前無法處理此請求"}))
 
 if __name__ == "__main__":
     app.run(debug=True)
