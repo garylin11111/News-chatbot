@@ -133,7 +133,7 @@ def webhook():
 
     	return make_response(jsonify({"fulfillmentText": reply}))
 
-    return make_response(jsonify({"fulfillmentText": "目前無法處理此請求"}))
+    # return make_response(jsonify({"fulfillmentText": "目前無法處理此請求"}))
 
 if __name__ == "__main__":
     app.run(debug=True)
