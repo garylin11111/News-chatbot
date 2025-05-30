@@ -30,46 +30,43 @@ def news():
     response.encoding = "utf-8"
     soup = BeautifulSoup(response.text, "html.parser")
 
-    news_tags = soup.select("a.pic")
+    news_items = soup.select("div.piece.clearfix")
     count = 0
 
-    for tag in news_tags:
-        title = tag.get("title", "").strip()
-        link = tag.get("href", "").strip()
-        img_tag = tag.find("img")
-        img_url = ""
+    for item in news_items:
+        a_tag = item.find("a", class_="pic")
+        if not a_tag:
+            continue
 
+        title = a_tag.get("title", "").strip()
+        link = a_tag.get("href", "").strip()
+        img_tag = a_tag.find("img")
+        time_tag = item.find("span", class_="date")
+
+        img_url = ""
         if img_tag:
-            img_url = img_tag.get("data-original") or img_tag.get("src")
-            if img_url and img_url.startswith("//"):
+            img_url = img_tag.get("data-original") or img_tag.get("src", "")
+            if img_url.startswith("//"):
                 img_url = "https:" + img_url
 
-        
-        parent = tag.find_parent("div", class_="piece")
-        time_text = ""
-        if parent:
-            time_tag = parent.find("span", class_="date")
-            if time_tag:
-                time_text = time_tag.text.strip()
-
-        
         if link.startswith("//"):
             link = "https:" + link
         elif link.startswith("/"):
             link = "https://www.ettoday.net" + link
 
+        pub_time = time_tag.text.strip() if time_tag else ""
+
         if title and link:
-            doc_ref = db.collection("科技新聞").document(title)
+            doc_ref = db.collection("熱門新聞").document(title)
             doc_ref.set({
                 "title": title,
                 "link": link,
                 "image": img_url,
-                "time": time_text
+                "time": pub_time
             })
             count += 1
 
-    return f"已成功寫入 {count} 筆科技新聞到 Firebase。"
-
+    return f"已成功寫入 {count} 筆熱門新聞到 Firebase。"
 
 
 @app.route("/webhook", methods=["POST"])
