@@ -107,7 +107,7 @@ def webhook():
     action = req.get("queryResult", {}).get("action")
 
     if action == "getTechNews":
-    	keyword = req.get("queryResult", {}).get("parameters", {}).get("news_topic", "").lower().strip()
+    	keyword = req.get("queryResult", {}).get("parameters", {}).get("news_topic", "").lower()
 	    docs = db.collection("科技新聞總表").get()
 	    result = ""
 
