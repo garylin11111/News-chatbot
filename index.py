@@ -107,13 +107,17 @@ def webhook():
     action = req.get("queryResult", {}).get("action")
 
     if action == "getTechNews":
-	    keyword = req.get("queryResult", {}).get("parameters", {}).get("news_topic", "").lower()
-	    docs = db.collection("科技新聞總表").get()
-	    result = ""
+    	keyword = req.get("queryResult", {}).get("parameters", {}).get("news_topic", "").lower().strip()
+
+    if not keyword:
+        return make_response(jsonify({"fulfillmentText": "請輸入要查詢的新聞關鍵字，例如：AI、ChatGPT、黃仁勳"}))
+
+    docs = db.collection("科技新聞總表").get()
+    result = ""
 
     for doc in docs:
         data = doc.to_dict()
-        title = data.get("title", "").lower()
+        title = data.get("title", "").lower().strip()
         if keyword in title:
             result += f"● {data['title']} ({data.get('source', '')})\n👉 {data['link']}\n\n"
 
@@ -124,15 +128,14 @@ def webhook():
 
 
 
-
-    # elif action == "input.unknown":
-    #     user_input = req["queryResult"]["queryText"]
-    #     api_key = os.getenv("API_KEY")  
-    #     genai.configure(api_key=api_key)
-    #     model = genai.GenerativeModel('gemini-2.0-flash')
-    #     response = model.generate_content(user_input)
-    #     reply = response.text
-    #     return make_response(jsonify({"fulfillmentText": reply}))
+    elif action == "input.unknown":
+        user_input = req["queryResult"]["queryText"]
+        api_key = os.getenv("API_KEY")  
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-2.0-flash')
+        response = model.generate_content(user_input)
+        reply = response.text
+        return make_response(jsonify({"fulfillmentText": reply}))
 
     
     return make_response(jsonify({"fulfillmentText": "目前無法處理此請求"}))
