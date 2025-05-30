@@ -13,3 +13,12 @@
         }
     ]
 }
+{
+  "runtime": "python3.9",
+  "functions": {
+    "api/index.py": {
+      "memory": 512,
+      "maxDuration": 10
+    }
+  }
+}
