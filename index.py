@@ -109,8 +109,7 @@ def webhook():
     if action == "getTechNews":
     	keyword = req.get("queryResult", {}).get("parameters", {}).get("news_topic", "").lower().strip()
 
-    if not keyword:
-        return make_response(jsonify({"fulfillmentText": "請輸入要查詢的新聞關鍵字，例如：AI、ChatGPT、黃仁勳"}))
+   
 
     docs = db.collection("科技新聞總表").get()
     result = ""
