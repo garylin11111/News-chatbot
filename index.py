@@ -56,7 +56,7 @@ def news():
         pub_time = time_tag.text.strip() if time_tag else ""
 
         if title and link:
-            doc_ref = db.collection("熱門新聞").document(title)
+            doc_ref = db.collection("科技新聞").document(title)
             doc_ref.set({
                 "title": title,
                 "link": link,
@@ -65,7 +65,7 @@ def news():
             })
             count += 1
 
-    return f"已成功寫入 {count} 筆熱門新聞到 Firebase。"
+    return f"已成功寫入 {count} 筆科技新聞到 Firebase。"
 
 
 @app.route("/webhook", methods=["POST"])
