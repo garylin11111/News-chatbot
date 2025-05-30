@@ -24,48 +24,40 @@ def index():
 
 @app.route("/news")
 def news():
-    url = "https://www.ettoday.net/news/hot-news.htm"
+    url = "https://www.ettoday.net/news/news-list.htm"
     headers = {"User-Agent": "Mozilla/5.0"}
     response = requests.get(url, headers=headers)
     response.encoding = "utf-8"
     soup = BeautifulSoup(response.text, "html.parser")
-    news_items = soup.select("div.piece.clearfix")
+
+
+    news_items = soup.select("ul.part_list_2 li")
     count = 0
 
-    for item in news_items:
-        a_tag = item.find("a", class_="pic")
-        if not a_tag:
+    for item in news_items[:30]: 
+        time_tag = item.find("span", class_="date")
+        a_tag = item.find("a")
+
+        if not time_tag or not a_tag:
             continue
 
-        title = a_tag.get("title", "").strip()
+        pub_time = time_tag.text.strip()
+        title = a_tag.text.strip()
         link = a_tag.get("href", "").strip()
-        img_tag = a_tag.find("img")
-        time_tag = item.find("span", class_="date")
 
-        img_url = ""
-        if img_tag:
-            img_url = img_tag.get("data-original") or img_tag.get("src", "")
-            if img_url.startswith("//"):
-                img_url = "https:" + img_url
-
-        if link.startswith("//"):
-            link = "https:" + link
-        elif link.startswith("/"):
+        if link.startswith("/"):
             link = "https://www.ettoday.net" + link
-
-        pub_time = time_tag.text.strip() if time_tag else ""
 
         if title and link:
             doc_ref = db.collection("科技新聞").document(title)
             doc_ref.set({
                 "title": title,
                 "link": link,
-                "image": img_url,
                 "time": pub_time
             })
             count += 1
 
-    return f"已成功寫入 {count} 筆科技新聞到 Firebase。"
+    return f"已成功寫入 {count} 筆科技新聞資料到 Firebase。"
 
 
 @app.route("/webhook", methods=["POST"])
