@@ -24,7 +24,7 @@ def index():
 
 @app.route("/news")
 def news():
-    url = "https://www.ettoday.net/news/focus/AI%E7%A7%91%E6%8A%80/"
+    url = "https://www.ettoday.net/news/hot-news.htm"
     headers = {"User-Agent": "Mozilla/5.0"}
     response = requests.get(url, headers=headers)
     response.encoding = "utf-8"
@@ -103,7 +103,7 @@ def webhook():
         return make_response(jsonify({"fulfillmentText": reply}))
 
     
-    return make_response(jsonify({"fulfillmentText": "目前無法處理此請求"}))
+    return make_response(jsonify({"fulfillmentText": }))
 
 if __name__ == "__main__":
     app.run(debug=True)
