@@ -217,7 +217,7 @@ def webhook():
             }))
 
         today = datetime.now()
-        date_str = today.strftime("%Y%m01")   
+        date_str = today.strftime("%Y%m01") 
         twse_url = (
             f"https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json"
             f"&date={date_str}&stockNo={stock_no}"
@@ -227,10 +227,11 @@ def webhook():
             resp = requests.get(twse_url)
             data = resp.json()
 
-            if data.get("stat") == "OK":
-                latest_record = data["data"][0]
+            if data.get("stat") == "OK" and data.get("data"):
+                latest_record = records[0]
                 closing_price = latest_record[6]
-                trade_date = latest_record[0]
+                trade_date = latest_record[0]   
+
                 reply = (
                     f"📈 股票代號：{stock_no}\n"
                     f"📅 最近交易日：{trade_date}\n"
@@ -243,6 +244,7 @@ def webhook():
             reply = f"⚠️ 取得股市資料時發生錯誤：{str(e)}"
 
         return make_response(jsonify({"fulfillmentText": reply}))
+
 
     elif action == "input.unknown":
         info = req["queryResult"]["queryText"]
