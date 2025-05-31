@@ -156,7 +156,7 @@ def webhook():
 
         return make_response(jsonify({"fulfillmentText": info + result}))
 
-    if action == "getJobInfo":
+    elif action == "getJobInfo":
         job_keyword = req.get("queryResult", {}).get("parameters", {}).get("job_keyword", "").strip()
         info = f"🔍 關鍵字：{job_keyword}\n\n"
 
