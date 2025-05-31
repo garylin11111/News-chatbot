@@ -260,10 +260,7 @@ def webhook():
         info = req["queryResult"]["queryText"]
         api_key = os.getenv("API_KEY")
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel(
-            'gemini-2.0-flash',
-            generation_config={"max_output_tokens": 128}
-        )
+        model = genai.GenerativeModel('gemini-2.0-flash',generation_config={"max_output_tokens": 128})
         response = model.generate_content(info)
         info = response.text
 
