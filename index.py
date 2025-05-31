@@ -209,8 +209,8 @@ def webhook():
 
         return make_response(jsonify({"fulfillmentText": info}))
 
-    elif action == "getStockInfo":
-        stock_input = req.get("queryResult", {}).get("parameters", {}).get("stock_no", "").strip()
+        elif action == "getStockInfo":
+        stock_input = req.get("queryResult").get("parameters").get("stock_no", "").strip()
 
         stock_mapping = {
             "台積電": "2330",
@@ -225,43 +225,35 @@ def webhook():
             "中鋼": "2002"
         }
 
-        stock_no = stock_mapping.get(stock_input, stock_input)
-
-        if not stock_no.isdigit():
-            return make_response(jsonify({
-                "fulfillmentText": f"❗ 請提供正確的股票代號或常見公司名稱（如：台積電、鴻海）。"
-            }))
+        stock_no = stock_mapping.get(stock_input, stock_input) 
 
         today = datetime.now()
-        date_str = today.strftime("%Y%m01") 
-        twse_url = (
-            f"https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json"
-            f"&date={date_str}&stockNo={stock_no}"
-        )
+        date_str = today.strftime("%Y%m01")
+        url = f"https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json&date={date_str}&stockNo={stock_no}"
 
         try:
-            resp = requests.get(twse_url)
-            data = resp.json()
+            Data = requests.get(url)
+            result = json.loads(Data.text)
 
-            if data.get("stat") == "OK" and data.get("data"):
-                latest_record = data["data"][-1] 
-                closing_price = latest_record[6]
-                trade_date = latest_record[0]
+            if result.get("stat") == "OK" and result.get("data"):
+                latest = result["data"][-1] 
+                date = latest[0]
+                close_price = latest[6]
+                volume = latest[1]
+                open_price = latest[3]
 
-                reply = (
-                    f"📈 股票代號：{stock_no}（{stock_input if stock_input != stock_no else '查詢代碼'}）\n"
-                    f"📅 最近交易日：{trade_date}\n"
-                    f"💰 收盤價：{closing_price} 元\n"
-                )
-            elif data.get("stat") != "OK":
-                reply = f"❌ 查詢失敗：{data.get('stat')}"
+                info = f"📈 股票代號：{stock_no}（查詢關鍵字：{stock_input}）\n"
+                info += f"📅 最近交易日：{date}\n"
+                info += f"💰 收盤價：{close_price} 元，開盤價：{open_price} 元\n"
+                info += f"📊 成交股數：{volume} 股"
             else:
-                reply = f"❌ 找不到股票 {stock_no} 的資料，可能是目前尚未有交易記錄或代碼錯誤。"
+                info = f"❌ 查無股票「{stock_input}」的資料，請確認股票代號或名稱是否正確。"
 
         except Exception as e:
-            reply = f"⚠️ 取得股市資料時發生錯誤：{str(e)}"
+            info = f"⚠️ 無法取得股票資料，錯誤訊息：{str(e)}"
 
-        return make_response(jsonify({"fulfillmentText": reply}))
+        return make_response(jsonify({"fulfillmentText": info}))
+
 
 
     elif action == "input.unknown":
