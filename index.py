@@ -299,12 +299,10 @@ def DispNews():
 
 @app.route("/AI")
 def AI():
-    info =  req["queryResult"]["queryText"]
     api_key = os.getenv("API_KEY")
     genai.configure(api_key = api_key)
     model = genai.GenerativeModel('gemini-pro')
-    response = model.generate_content(info)
-    info =  response.text
+    response = model.generate_content('我想查詢靜宜大學資管系的評價？')
     return response.text
 
 
