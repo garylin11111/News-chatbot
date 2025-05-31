@@ -258,8 +258,7 @@ def webhook():
 
     elif action == "input.unknown":
         info = req["queryResult"]["queryText"]
-        api_key = os.getenv("API_KEY")
-        genai.configure(api_key=api_key)
+        genai.configure(api_key='AIzaSyC_E5AIrjA55e2lOtHFOnBYVbNL1q7nn_w')
         model = genai.GenerativeModel('gemini-2.0-flash',generation_config={"max_output_tokens": 128})
         response = model.generate_content(info)
         info = response.text
@@ -296,8 +295,7 @@ def DispNews():
 
 @app.route("/AI")
 def AI():
-    api_key = os.getenv("API_KEY")
-    genai.configure(api_key = api_key)
+    genai.configure(api_key = 'AIzaSyC_E5AIrjA55e2lOtHFOnBYVbNL1q7nn_w')
     model = genai.GenerativeModel('gemini-pro')
     response = model.generate_content('我想查詢靜宜大學資管系的評價？')
     return response.text
