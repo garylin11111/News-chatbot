@@ -265,9 +265,9 @@ def webhook():
             generation_config={"max_output_tokens": 128}
         )
         response = model.generate_content(info)
-        reply = response.text
+        info = response.text
 
-        return make_response(jsonify({"fulfillmentText": reply}))
+        return make_response(jsonify({"fulfillmentText": info}))
 
     return make_response(jsonify({"fulfillmentText": "⚠️ 目前無法處理這個請求"}))
 
@@ -297,15 +297,15 @@ def DispNews():
     else:
         return render_template("news.html")
 
-@app.route("/AI")
-def AI():
-    info =  req["queryResult"]["queryText"]
-    api_key = os.getenv("API_KEY")
-    genai.configure(api_key = api_key)
-    model = genai.GenerativeModel('gemini-pro')
-    response = model.generate_content(info)
-    info =  response.text
-    return response.text
+# @app.route("/AI")
+# def AI():
+#     info =  req["queryResult"]["queryText"]
+#     api_key = os.getenv("API_KEY")
+#     genai.configure(api_key = api_key)
+#     model = genai.GenerativeModel('gemini-pro')
+#     response = model.generate_content(info)
+#     info =  response.text
+#     return response.text
 
 
 
