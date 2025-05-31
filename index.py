@@ -153,14 +153,13 @@ def webhook():
         job_keyword = req.get("queryResult", {}).get("parameters", {}).get("job_keyword", "").strip()
         info = f"🔍 關鍵字：{job_keyword}\n\n"
 
-        search_url = f"https://www.104.com.tw/jobs/search/?ro=0&keyword={job_keyword}&order=1&asc=0&page=1&mode=s&jobsource=2018indexpoc"
-
+        url = f"https://www.104.com.tw/jobs/search/?ro=0&keyword={job_keyword}&order=1&asc=0&page=1&mode=s&jobsource=2018indexpoc"
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
         }
 
         try:
-            res = requests.get(search_url, headers=headers)
+            res = requests.get(url, headers=headers)
             res.encoding = "utf-8"
             soup = BeautifulSoup(res.text, "html.parser")
             jobs = soup.select("article.js-job-item")
@@ -173,10 +172,9 @@ def webhook():
                     title_tag = job.select_one("a.js-job-link")
                     if not title_tag:
                         continue
-
                     title = title_tag.text.strip()
                     job_id = title_tag.get("href").split('/')[-1].split('?')[0]
-                    link = f"https://www.104.com.tw/job/{job_id}"
+                    link = f"https://www.104.com.tw{title_tag.get('href')}"
                     company = job.get("data-cust-name", "公司未提供")
                     location_tag = job.select_one("ul.job-list-intro li")
                     location = location_tag.text.strip() if location_tag else "地點未提供"
@@ -184,7 +182,6 @@ def webhook():
                     salary = salary_tag.text.strip() if salary_tag else "薪資未提供"
 
                     info += f"● {title}（公司：{company}）\n📍 {location}｜💰 {salary}\n👉 {link}\n\n"
-
                     count += 1
                     if count >= 3:
                         break
