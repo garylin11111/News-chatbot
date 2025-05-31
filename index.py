@@ -153,37 +153,35 @@ def webhook():
         job_keyword = req.get("queryResult", {}).get("parameters", {}).get("job_keyword", "").strip()
         info = f"🔍 關鍵字：{job_keyword}\n\n"
 
-        api_url = f"https://www.104.com.tw/jobs/search/list?ro=0&keyword={job_keyword}&order=1&asc=0&page=1&mode=s&jobsource=2018indexpoc"
+        search_url = f"https://www.104.com.tw/jobs/search/?ro=0&keyword={job_keyword}&order=1&asc=0&page=1&mode=s&jobsource=2018indexpoc"
 
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-            "Referer": "https://www.104.com.tw/jobs/search/",
-            "Accept": "application/json, text/javascript, */*; q=0.01",
-            "X-Requested-With": "XMLHttpRequest"
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
         }
 
         try:
-            res = requests.get(api_url, headers=headers)
-            data = res.json()
-            jobs = data.get("data", {}).get("list", [])
+            res = requests.get(search_url, headers=headers)
+            soup = BeautifulSoup(res.text, "html.parser")
+            jobs = soup.select("article.js-job-item")
 
             if not jobs:
                 info += "❌ 找不到符合的職缺，請換個關鍵字試試看。"
             else:
                 count = 0
                 for job in jobs:
-                    # 必要欄位確認
-                    if not job.get("job_name") or not job.get("job_id"):
+                    title_tag = job.select_one("a.js-job-link")
+                    if not title_tag:
                         continue
 
-                    title = job.get("job_name", "職缺未提供")
-                    company = job.get("cust_name", "公司未提供")
-                    address = job.get("job_addr_no_descript", "地點未提供")
-                    salary = job.get("salary", "薪資未提供")
-                    job_id = job.get("job_id", "")
-                    link = f"https://www.104.com.tw/job/{job_id}" if job_id else "無連結"
+                    title = title_tag.text.strip()
+                    link = "https:" + title_tag.get("href")
+                    company = job.get("data-cust-name", "公司未提供")
+                    salary_tag = job.select_one("ul.job-list-tag span")
+                    salary = salary_tag.text.strip() if salary_tag else "薪資未提供"
+                    location_tag = job.select_one("ul.job-list-intro li")
+                    location = location_tag.text.strip() if location_tag else "地點未提供"
 
-                    info += f"● {title}（公司：{company}）\n📍 {address}｜💰 {salary}\n👉 {link}\n\n"
+                    info += f"● {title}（公司：{company}）\n📍 {location}｜💰 {salary}\n👉 {link}\n\n"
 
                     count += 1
                     if count >= 3:
