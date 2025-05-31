@@ -112,14 +112,16 @@ def webhook():
     	docs = db.collection("科技新聞總表").get()
     	result = ""
 
-    for doc in docs:
+
+        for doc in docs:
         data = doc.to_dict()
         title = data.get("title", "").lower().strip()
         if keyword in title:
             result += f"● {data['title']} ({data.get('source', '')})\n👉 {data['link']}\n\n"
 
-    if not result:
-        result = f"❌ 找不到與「{keyword}」有關的新聞，請試試其他關鍵字。"
+
+        if not result:
+            result = f"❌ 找不到與「{keyword}」有關的新聞，請試試其他關鍵字。"
 
         return make_response(jsonify({"fulfillmentText": result}))
 
