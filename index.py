@@ -108,16 +108,16 @@ def webhook():
     action = req.get("queryResult", {}).get("action")
 
     if action == "getTechNews":
-    	keyword = req.get("queryResult", {}).get("parameters", {}).get("news_topic", "").lower()
-    	docs = db.collection("科技新聞總表").get()
-    	result = ""
+        keyword = req.get("queryResult", {}).get("parameters", {}).get("news_topic", "").lower()
+        docs = db.collection("科技新聞總表").get()
+        result = ""
 
 
         for doc in docs:
-        data = doc.to_dict()
-        title = data.get("title", "").lower().strip()
-        if keyword in title:
-            result += f"● {data['title']} ({data.get('source', '')})\n👉 {data['link']}\n\n"
+            data = doc.to_dict()
+            title = data.get("title", "").lower().strip()
+            if keyword in title:
+                result += f"● {data['title']} ({data.get('source', '')})\n👉 {data['link']}\n\n"
 
 
         if not result:
