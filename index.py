@@ -297,15 +297,15 @@ def DispNews():
     else:
         return render_template("news.html")
 
-# @app.route("/AI")
-# def AI():
-#     info =  req["queryResult"]["queryText"]
-#     api_key = os.getenv("API_KEY")
-#     genai.configure(api_key = api_key)
-#     model = genai.GenerativeModel('gemini-pro')
-#     response = model.generate_content(info)
-#     info =  response.text
-#     return response.text
+@app.route("/AI")
+def AI():
+    info =  req["queryResult"]["queryText"]
+    api_key = os.getenv("API_KEY")
+    genai.configure(api_key = api_key)
+    model = genai.GenerativeModel('gemini-pro')
+    response = model.generate_content(info)
+    info =  response.text
+    return response.text
 
 
 
