@@ -108,13 +108,27 @@ def news():
         count += 1
 
     return f"共寫入 {count} 筆科技新聞（多來源）到 Firebase。"
+
 @app.route("/webhook", methods=["POST"])
 def webhook(): 
     req = request.get_json(force=True)
     action = req.get("queryResult", {}).get("action")
 
     if action == "getTechNews":
-        keyword = req.get("queryResult", {}).get("parameters", {}).get("any", "").lower().strip()
+        keyword_raw = req.get("queryResult", {}).get("parameters", {}).get("any", "").lower().strip()
+        keyword_clean = keyword_raw.replace("新聞", "").replace("消息", "").strip()
+
+        keyword_mapping = {
+            "nvidia": "輝達",
+            "jensen huang": "黃仁勳",
+            "chatgpt": "chatgpt",
+            "google": "google",
+            "openai": "openai",
+            "tsmc": "台積電",
+            "ai": "ai"
+        }
+        keyword = keyword_mapping.get(keyword_clean, keyword_clean)
+
         info = f"我是科技新聞聊天機器人，您要查詢的新聞是: {keyword}\n\n"
 
         docs = db.collection("科技新聞總表").get()
@@ -146,7 +160,6 @@ def webhook():
         return make_response(jsonify({"fulfillmentText": reply}))
 
     return make_response(jsonify({"fulfillmentText": "⚠️ 目前無法處理這個請求"}))
-
 
 
 @app.route("/DispNews", methods=["GET", "POST"])
