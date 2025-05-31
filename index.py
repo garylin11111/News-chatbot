@@ -145,7 +145,7 @@ def webhook():
     	response = model.generate_content(info)
     	info = response.text
 
-    	return make_response(jsonify({"fulfillmentText": info}))
+        return make_response(jsonify({"fulfillmentText": info}))
 
 
 @app.route("/DispNews", methods=["GET", "POST"])
