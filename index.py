@@ -108,7 +108,6 @@ def news():
         count += 1
 
     return f"共寫入 {count} 筆科技新聞（多來源）到 Firebase。"
-
 @app.route("/webhook", methods=["POST"])
 def webhook(): 
     req = request.get_json(force=True)
@@ -116,26 +115,25 @@ def webhook():
 
     if action == "getTechNews":
         keyword = req.get("queryResult", {}).get("parameters", {}).get("any", "").lower().strip()
-        info = "我是科技新聞聊天機器人，您要查詢的新聞是: " + keyword + "\n\n"
+        info = f"我是科技新聞聊天機器人，您要查詢的新聞是: {keyword}\n\n"
 
         docs = db.collection("科技新聞總表").get()
-        found = False
+        result = ""
 
         for doc in docs:
             data = doc.to_dict()
             title = data.get("title", "").lower()
             if keyword in title:
-                found = True
-                info += f"● {data['title']} ({data.get('source', '未知')})\n"
-                info += f"👉 {data['link']}\n"
+                result += f"● {data['title']} ({data.get('source', '未知')})\n"
+                result += f"👉 {data['link']}\n"
                 if data.get("time"):
-                    info += f"🕒 發佈時間：{data['time']}\n"
-                info += "\n"
+                    result += f"🕒 發佈時間：{data['time']}\n"
+                result += "\n"
 
-            if not found:
-                info += "❌ 很抱歉，找不到與這個關鍵字相關的新聞內容。"
+        if not result:
+            result = "❌ 很抱歉，找不到與這個關鍵字相關的新聞內容。"
 
-        return make_response(jsonify({"fulfillmentText": info}))
+        return make_response(jsonify({"fulfillmentText": info + result}))
 
     elif action == "input.unknown":
         info = req["queryResult"]["queryText"]
@@ -148,6 +146,7 @@ def webhook():
         return make_response(jsonify({"fulfillmentText": reply}))
 
     return make_response(jsonify({"fulfillmentText": "⚠️ 目前無法處理這個請求"}))
+
 
 
 @app.route("/DispNews", methods=["GET", "POST"])
