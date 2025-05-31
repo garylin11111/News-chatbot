@@ -161,6 +161,7 @@ def webhook():
 
         try:
             res = requests.get(search_url, headers=headers)
+            res.encoding = "utf-8"
             soup = BeautifulSoup(res.text, "html.parser")
             jobs = soup.select("article.js-job-item")
 
@@ -174,12 +175,13 @@ def webhook():
                         continue
 
                     title = title_tag.text.strip()
-                    link = "https:" + title_tag.get("href")
+                    job_id = title_tag.get("href").split('/')[-1].split('?')[0]
+                    link = f"https://www.104.com.tw/job/{job_id}"
                     company = job.get("data-cust-name", "公司未提供")
-                    salary_tag = job.select_one("ul.job-list-tag span")
-                    salary = salary_tag.text.strip() if salary_tag else "薪資未提供"
                     location_tag = job.select_one("ul.job-list-intro li")
                     location = location_tag.text.strip() if location_tag else "地點未提供"
+                    salary_tag = job.select_one("span.b-tag--default")
+                    salary = salary_tag.text.strip() if salary_tag else "薪資未提供"
 
                     info += f"● {title}（公司：{company}）\n📍 {location}｜💰 {salary}\n👉 {link}\n\n"
 
@@ -191,7 +193,6 @@ def webhook():
             info = f"⚠️ 發生錯誤：{str(e)}"
 
         return make_response(jsonify({"fulfillmentText": info}))
-
 
 
 
