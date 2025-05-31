@@ -228,10 +228,9 @@ def webhook():
             data = resp.json()
 
             if data.get("stat") == "OK" and data.get("data"):
-                latest_record = records[0]
+                latest_record = data["data"][0]
                 closing_price = latest_record[6]
-                trade_date = latest_record[0]   
-
+                trade_date = latest_record[0]
                 reply = (
                     f"📈 股票代號：{stock_no}\n"
                     f"📅 最近交易日：{trade_date}\n"
