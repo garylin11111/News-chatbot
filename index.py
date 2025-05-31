@@ -163,25 +163,31 @@ def webhook():
         try:
             res = requests.get(api_url, headers=headers)
             data = res.json()
-            jobs = data.get("data", {}).get("list", [])[:3] 
+            jobs = data.get("data", {}).get("list", [])
 
             if not jobs:
                 info += "❌ 找不到符合的職缺，請換個關鍵字試試看。"
             else:
+                count = 0
                 for job in jobs:
-                    title = job["job_name"]
-                    company = job["cust_name"]
-                    address = job["job_addr_no_descript"]
-                    salary = job["salary"]
-                    job_id = job["job_id"]
-                    link = f"https://www.104.com.tw/job/{job_id}"
+                    title = job.get("job_name", "職缺未提供")
+                    company = job.get("cust_name", "公司未提供")
+                    address = job.get("job_addr_no_descript", "地點未提供")
+                    salary = job.get("salary", "薪資未提供")
+                    job_id = job.get("job_id", "")
+                    link = f"https://www.104.com.tw/job/{job_id}" if job_id else "無連結"
 
                     info += f"● {title}（公司：{company}）\n📍 {address}｜💰 {salary}\n👉 {link}\n\n"
+
+                    count += 1
+                    if count >= 3:
+                        break
 
         except Exception as e:
             info = f"⚠️ 發生錯誤：{str(e)}"
 
         return make_response(jsonify({"fulfillmentText": info}))
+
 
 
     elif action == "input.unknown":
