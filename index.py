@@ -21,6 +21,14 @@ def index():
     homepage = "<h2>科技新聞聊天機器人</h2>"
     homepage += "<a href='/news'>爬取科技新聞並存入Firebase</a><br>"
     homepage += "<a href='/DispNews'>查詢科技新聞</a><br>"    
+
+
+    homepage += '<script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1">'
+    homepage += '</script><df-messengerintent="WELCOME"chat-title="林政彥" '
+    homepage += 'agent-id="095d9a8b-87f0-48b6-9d86-97f40bb73458" '
+    homepage += 'language-code="zh-tw" ></df-messenger> '
+
+
     return homepage
 
 
@@ -108,9 +116,9 @@ def webhook():
     action = req.get("queryResult", {}).get("action")
 
     if action == "getTechNews":
-        keyword = req.get("queryResult", {}).get("parameters", {}).get("news_topic", "").lower()
+        keyword = req.get("queryResult", {}).get("parameters", {}).get("any", "")
         docs = db.collection("科技新聞總表").get()
-        result = ""
+        result = "我是科技新聞聊天機器人，您要查詢的新聞是:"+ keyword + "\n\n"
 
 
         for doc in docs:
