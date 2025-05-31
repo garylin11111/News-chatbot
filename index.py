@@ -116,22 +116,28 @@ def webhook():
     action = req.get("queryResult", {}).get("action")
 
     if action == "getTechNews":
-        keyword = req.get("queryResult", {}).get("parameters", {}).get("any", "")
-        docs = db.collection("科技新聞總表").get()
+        keyword = req.get("queryResult", {}).get("parameters", {}).get("any", "").lower().strip()
         result = "我是科技新聞聊天機器人，您要查詢的新聞是:"+ keyword + "\n\n"
 
+        db = firestore.client()
+        docs = db.collection("科技新聞總表").get()
+        found = False
 
         for doc in docs:
             data = doc.to_dict()
-            title = data.get("title", "").lower().strip()
+            title = data.get("title", "").lower()
             if keyword in title:
-                result += f"● {data['title']} ({data.get('source', '')})\n👉 {data['link']}\n\n"
+                found = True
+                info += f"● {data['title']} ({data.get('source', '未知')})\n"
+                info += f"👉 {data['link']}\n"
+                if data.get("time"):
+                    info += f"🕒 發佈時間：{data['time']}\n"
+                    info += "\n"
 
+            if not found:
+                info += "❌ 很抱歉，找不到與這個關鍵字相關的新聞內容。"
 
-        if not result:
-            result = f"❌ 找不到與「{keyword}」有關的新聞，請試試其他關鍵字。"
-
-        return make_response(jsonify({"fulfillmentText": result}))
+            return make_response(jsonify({"fulfillmentText": info}))
 
 
     elif action == "input.unknown":
