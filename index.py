@@ -20,6 +20,7 @@ app = Flask(__name__)
 def index():
     homepage = "<h2>科技新聞聊天機器人</h2>"
     homepage += "<a href='/news'>爬取科技新聞並存入Firebase</a><br>"
+    homepage += "<a href='/DispNews'>查詢科技新聞</a><br>"    
     return homepage
 
 
@@ -132,8 +133,39 @@ def webhook():
     	reply = response.text
 
     	return make_response(jsonify({"fulfillmentText": reply}))
+    	
 
-    # return make_response(jsonify({"fulfillmentText": "目前無法處理此請求"}))
+    return make_response(jsonify({"fulfillmentText": "目前無法處理此請求"}))
+
+
+@app.route("/DispNews", methods=["GET", "POST"])
+def DispNews():
+    if request.method == "POST":
+        keyword = request.form["NewsKeyword"].lower()
+        db = firestore.client()
+        docs = db.collection("科技新聞總表").get()
+        info = ""
+
+        for item in docs:
+            data = item.to_dict()
+            title = data.get("title", "").lower()
+
+            if keyword in title:
+                info += f"<b>標題：</b><a href='{data.get('link', '#')}' target='_blank'>{data.get('title')}</a><br>"
+                info += f"<b>來源：</b>{data.get('source', '未知')}<br>"
+                info += f"<b>時間：</b>{data.get('time', '無時間資訊')}<br>"
+                if data.get("image"):
+                    info += f"<img src='{data['image']}' width='300'><br>"
+                info += "<hr>"
+
+        if not info:
+            info = "❌ 沒有找到符合關鍵字的新聞。"
+
+        return info
+
+    else:
+        return render_template("news.html")  
+
 
 if __name__ == "__main__":
     app.run(debug=True)
