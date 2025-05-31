@@ -132,8 +132,8 @@ def webhook():
                     info += f"🕒 發佈時間：{data['time']}\n"
                 info += "\n"
 
-	if not found:
-        	info += "❌ 很抱歉，找不到與這個關鍵字相關的新聞內容。"
+            if not found:
+                info += "❌ 很抱歉，找不到與這個關鍵字相關的新聞內容。"
 
         return make_response(jsonify({"fulfillmentText": info}))
 
