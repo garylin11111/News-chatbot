@@ -134,9 +134,6 @@ def webhook():
                     info += f"🕒 發佈時間：{data['time']}\n"
                     info += "\n"
 
-        if not found:
-            info += "❌ 很抱歉，找不到與這個關鍵字相關的新聞內容。"
-
     elif action == "input.unknown":
     	info = req["queryResult"]["queryText"]
     	api_key = os.getenv("API_KEY")
