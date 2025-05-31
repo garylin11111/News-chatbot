@@ -157,7 +157,8 @@ def webhook():
 
         headers = {
             "User-Agent": "Mozilla/5.0",
-            "Referer": "https://www.104.com.tw/jobs/search/"
+            "Referer": "https://www.104.com.tw/jobs/search/",
+            "Accept": "application/json, text/javascript, */*; q=0.01"
         }
 
         try:
