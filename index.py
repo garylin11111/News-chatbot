@@ -109,17 +109,15 @@ def news():
 
     return f"共寫入 {count} 筆科技新聞（多來源）到 Firebase。"
 
-
 @app.route("/webhook", methods=["POST"])
 def webhook(): 
     req = request.get_json(force=True)
-    action =  req.get("queryResult").get("action")
+    action = req.get("queryResult", {}).get("action")
 
     if action == "getTechNews":
         keyword = req.get("queryResult", {}).get("parameters", {}).get("any", "").lower().strip()
-        info = "我是科技新聞聊天機器人，您要查詢的新聞是:"+ keyword + "\n\n"
+        info = "我是科技新聞聊天機器人，您要查詢的新聞是: " + keyword + "\n\n"
 
-        db = firestore.client()
         docs = db.collection("科技新聞總表").get()
         found = False
 
@@ -132,17 +130,24 @@ def webhook():
                 info += f"👉 {data['link']}\n"
                 if data.get("time"):
                     info += f"🕒 發佈時間：{data['time']}\n"
-                    info += "\n"
+                info += "\n"
+
+        if not found:
+            info += "❌ 很抱歉，找不到與這個關鍵字相關的新聞內容。"
+
+        return make_response(jsonify({"fulfillmentText": info}))
 
     elif action == "input.unknown":
-    	info = req["queryResult"]["queryText"]
-    	api_key = os.getenv("API_KEY")
-    	genai.configure(api_key=api_key)
-    	model = genai.GenerativeModel('gemini-2.0-flash', generation_config = {"max_output_tokens": 128})
-    	response = model.generate_content(info)
-    	info = response.text
+        info = req["queryResult"]["queryText"]
+        api_key = os.getenv("API_KEY")
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-2.0-flash', generation_config={"max_output_tokens": 128})
+        response = model.generate_content(info)
+        reply = response.text
 
-    return make_response(jsonify({"fulfillmentText": info}))
+        return make_response(jsonify({"fulfillmentText": reply}))
+
+    return make_response(jsonify({"fulfillmentText": "⚠️ 目前無法處理這個請求"}))
 
 
 @app.route("/DispNews", methods=["GET", "POST"])
