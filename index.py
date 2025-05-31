@@ -209,7 +209,7 @@ def webhook():
 
         return make_response(jsonify({"fulfillmentText": info}))
 
-        elif action == "getStockInfo":
+    elif action == "getStockInfo":
         stock_input = req.get("queryResult").get("parameters").get("stock_no", "").strip()
 
         stock_mapping = {
