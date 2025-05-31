@@ -15,6 +15,13 @@ from datetime import datetime, timezone, timedelta
 import os
 import google.generativeai as genai
 
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager
+import time
+
 app = Flask(__name__)
 @app.route("/")
 def index():
@@ -149,44 +156,42 @@ def webhook():
 
         return make_response(jsonify({"fulfillmentText": info + result}))
 
-    elif action == "getJobInfo":
+    if action == "getJobInfo":
         job_keyword = req.get("queryResult", {}).get("parameters", {}).get("job_keyword", "").strip()
         info = f"🔍 關鍵字：{job_keyword}\n\n"
 
         try:
-            from selenium import webdriver
-            from selenium.webdriver.chrome.service import Service
-            from selenium.webdriver.common.by import By
-            from webdriver_manager.chrome import ChromeDriverManager
-            import time
+            chrome_options = Options()
+            chrome_options.add_argument("--headless")
+            chrome_options.add_argument("--no-sandbox")
+            chrome_options.add_argument("--disable-dev-shm-usage")
 
-            options = webdriver.ChromeOptions()
-            options.add_argument("--headless")
-            options.add_argument("--no-sandbox")
-            options.add_argument("--disable-dev-shm-usage")
+            driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
-            driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+            url = f"https://www.104.com.tw/jobs/search/?keyword={job_keyword}"
+            driver.get(url)
+            time.sleep(5)
 
-            search_url = f"https://www.104.com.tw/jobs/search/?keyword={job_keyword}&ro=0"
-            driver.get(search_url)
-            time.sleep(5)  
+            job_cards = driver.find_elements(By.CSS_SELECTOR, 'div.job-card')
 
-            jobs = driver.find_elements(By.CSS_SELECTOR, "article.js-job-item")
             count = 0
-
-            for job in jobs:
+            for card in job_cards:
                 try:
-                    title_elem = job.find_element(By.CSS_SELECTOR, "a.js-job-link")
+                    title_elem = card.find_element(By.CSS_SELECTOR, 'a.js-job-link')
                     title = title_elem.text
-                    link = title_elem.get_attribute("href")
-                    company = job.get_attribute("data-cust-name") or "公司名稱未提供"
+                    link = title_elem.get_attribute('href')
 
-                    info += f"● {title}（公司：{company}）\n👉 {link}\n\n"
+                    company_elem = card.find_element(By.CSS_SELECTOR, 'div.company-name-link')
+                    company = company_elem.text
 
+                    detail_elem = card.find_element(By.CSS_SELECTOR, 'div.tags')
+                    detail = detail_elem.text
+
+                    info += f"● {title}（公司：{company}）\n📍 {detail}\n👉 {link}\n\n"
                     count += 1
                     if count >= 3:
                         break
-                except Exception:
+                except Exception as e:
                     continue
 
             if count == 0:
