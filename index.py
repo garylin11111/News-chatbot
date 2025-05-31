@@ -149,6 +149,38 @@ def webhook():
 
         return make_response(jsonify({"fulfillmentText": info + result}))
 
+    elif action == "getJobInfo":
+        job_keyword = req.get("queryResult", {}).get("parameters", {}).get("job_keyword", "").strip()
+        info = f"🔍 關鍵字：{job_keyword}\n\n"
+
+        search_url = f"https://www.104.com.tw/jobs/search/?ro=0&keyword={job_keyword}&jobcatExpMore=1&order=15&asc=0&page=1&mode=s&jobsource=2018indexpoc"
+        headers = {
+            "User-Agent": "Mozilla/5.0"
+        }
+
+        try:
+            res = requests.get(search_url, headers=headers)
+            res.encoding = "utf-8"
+            soup = BeautifulSoup(res.text, "html.parser")
+
+            jobs = soup.select("article.job-list-item")[:3]  # 只取前三筆
+            if not jobs:
+                info += "❌ 找不到符合的職缺，請換個關鍵字試試看。"
+
+            for job in jobs:
+                title = job.select_one("a.js-job-link").text.strip()
+                link = "https:" + job.select_one("a.js-job-link")["href"]
+                company = job.select_one("ul.job-list-intro li a").text.strip()
+                address = job.select_one("ul.job-list-intro li span.job-list-intro__area").text.strip()
+                salary = job.select_one("ul.job-list-tag li span.salary").text.strip() if job.select_one("ul.job-list-tag li span.salary") else "未提供"
+
+                info += f"● {title}（公司：{company}）\n📍 {address}｜💰 {salary}\n👉 {link}\n\n"
+
+        except Exception as e:
+            info = f"⚠️ 發生錯誤：{str(e)}"
+
+        return make_response(jsonify({"fulfillmentText": info}))
+
     elif action == "input.unknown":
         info = req["queryResult"]["queryText"]
         api_key = os.getenv("API_KEY")
