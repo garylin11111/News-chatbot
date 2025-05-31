@@ -153,38 +153,46 @@ def webhook():
         job_keyword = req.get("queryResult", {}).get("parameters", {}).get("job_keyword", "").strip()
         info = f"🔍 關鍵字：{job_keyword}\n\n"
 
-        url = f"https://www.104.com.tw/jobs/search/?ro=0&keyword={job_keyword}&order=1&asc=0&page=1&mode=s&jobsource=2018indexpoc"
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-        }
-
         try:
-            res = requests.get(url, headers=headers)
-            res.encoding = "utf-8"
-            soup = BeautifulSoup(res.text, "html.parser")
-            jobs = soup.select("article.js-job-item")
+            from selenium import webdriver
+            from selenium.webdriver.chrome.service import Service
+            from selenium.webdriver.common.by import By
+            from webdriver_manager.chrome import ChromeDriverManager
+            import time
 
-            if not jobs:
-                info += "❌ 找不到符合的職缺，請換個關鍵字試試看。"
-            else:
-                count = 0
-                for job in jobs:
-                    title_tag = job.select_one("a.js-job-link")
-                    if not title_tag:
-                        continue
-                    title = title_tag.text.strip()
-                    job_id = title_tag.get("href").split('/')[-1].split('?')[0]
-                    link = f"https://www.104.com.tw{title_tag.get('href')}"
-                    company = job.get("data-cust-name", "公司未提供")
-                    location_tag = job.select_one("ul.job-list-intro li")
-                    location = location_tag.text.strip() if location_tag else "地點未提供"
-                    salary_tag = job.select_one("span.b-tag--default")
-                    salary = salary_tag.text.strip() if salary_tag else "薪資未提供"
+            options = webdriver.ChromeOptions()
+            options.add_argument("--headless")
+            options.add_argument("--no-sandbox")
+            options.add_argument("--disable-dev-shm-usage")
 
-                    info += f"● {title}（公司：{company}）\n📍 {location}｜💰 {salary}\n👉 {link}\n\n"
+            driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+
+            search_url = f"https://www.104.com.tw/jobs/search/?keyword={job_keyword}&ro=0"
+            driver.get(search_url)
+            time.sleep(5)  
+
+            jobs = driver.find_elements(By.CSS_SELECTOR, "article.js-job-item")
+            count = 0
+
+            for job in jobs:
+                try:
+                    title_elem = job.find_element(By.CSS_SELECTOR, "a.js-job-link")
+                    title = title_elem.text
+                    link = title_elem.get_attribute("href")
+                    company = job.get_attribute("data-cust-name") or "公司名稱未提供"
+
+                    info += f"● {title}（公司：{company}）\n👉 {link}\n\n"
+
                     count += 1
                     if count >= 3:
                         break
+                except Exception:
+                    continue
+
+            if count == 0:
+                info += "❌ 找不到符合的職缺，請換個關鍵字試試看。"
+
+            driver.quit()
 
         except Exception as e:
             info = f"⚠️ 發生錯誤：{str(e)}"
