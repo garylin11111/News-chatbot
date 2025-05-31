@@ -9,8 +9,8 @@ cred = credentials.Certificate("newschatbotkey.json")
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
-from flask import Flask,render_template, request, make_response, jsonify,json
-from datetime import datetime, timezone, timedelta
+from flask import Flask, render_template, request, make_response, jsonify
+from datetime import datetime, timedelta
 
 import os
 import google.generativeai as genai
@@ -23,21 +23,22 @@ from webdriver_manager.chrome import ChromeDriverManager
 import time
 
 app = Flask(__name__)
+
 @app.route("/")
 def index():
     homepage = "<h2>科技新聞聊天機器人</h2>"
     homepage += "<a href='/news'>爬取科技新聞並存入Firebase</a><br>"
-    homepage += "<a href='/DispNews'>查詢科技新聞</a><br>"    
+    homepage += "<a href='/DispNews'>查詢科技新聞</a><br>"
 
-
-    homepage += '<script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1">'
-    homepage += '</script><df-messengerintent="WELCOME"chat-title="林政彥" '
-    homepage += 'agent-id="095d9a8b-87f0-48b6-9d86-97f40bb73458" '
-    homepage += 'language-code="zh-tw" ></df-messenger> '
-
+    homepage += (
+        '<script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1">'
+        '</script>'
+        '<df-messenger intent="WELCOME" chat-title="林政彥" '
+        'agent-id="095d9a8b-87f0-48b6-9d86-97f40bb73458" '
+        'language-code="zh-tw"></df-messenger> '
+    )
 
     return homepage
-
 
 
 @app.route("/news")
@@ -68,12 +69,12 @@ def news():
         pub_time = time_tag.text.strip() if time_tag else ""
 
         db.collection("科技新聞總表").add({
-		    "title": title,
-		    "link": link,
-		    "image": img_url,
-		    "source": "ETtoday",
-		    "time": pub_time
-		})
+            "title": title,
+            "link": link,
+            "image": img_url,
+            "source": "ETtoday",
+            "time": pub_time
+        })
         count += 1
 
     url_technews = "https://technews.tw/"
@@ -82,16 +83,16 @@ def news():
     soup2 = BeautifulSoup(r2.text, "html.parser")
     tech_news = soup2.select("header.entry-header h1.entry-title a")
 
-    for tag in tech_news[:20]:  
+    for tag in tech_news[:20]:
         title = tag.text.strip()
         link = tag.get("href", "").strip()
         db.collection("科技新聞總表").add({
-		    "title": title,
-		    "link": link,
-		    "image": img_url,
-		    "source": "TechNews",
-		    "time": pub_time
-		})
+            "title": title,
+            "link": link,
+            "image": img_url,
+            "source": "TechNews",
+            "time": pub_time
+        })
         count += 1
 
     url_ltn = "https://3c.ltn.com.tw/"
@@ -100,24 +101,25 @@ def news():
     soup3 = BeautifulSoup(r3.text, "html.parser")
     ltn_news = soup3.select("ul.list li a")
 
-    for tag in ltn_news[:20]: 
+    for tag in ltn_news[:20]:
         title = tag.text.strip()
         link = tag.get("href", "").strip()
         if link.startswith("/"):
             link = "https://3c.ltn.com.tw" + link
         db.collection("科技新聞總表").add({
-		    "title": title,
-		    "link": link,
-		    "image": img_url,
-		    "source": "自由時報 3C",
-		    "time": pub_time
-		})
+            "title": title,
+            "link": link,
+            "image": img_url,
+            "source": "自由時報 3C",
+            "time": pub_time
+        })
         count += 1
 
     return f"共寫入 {count} 筆科技新聞（多來源）到 Firebase。"
 
+
 @app.route("/webhook", methods=["POST"])
-def webhook(): 
+def webhook():
     req = request.get_json(force=True)
     action = req.get("queryResult", {}).get("action")
 
@@ -166,32 +168,35 @@ def webhook():
             chrome_options.add_argument("--no-sandbox")
             chrome_options.add_argument("--disable-dev-shm-usage")
 
-            driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+            driver = webdriver.Chrome(
+                service=Service(ChromeDriverManager().install()),
+                options=chrome_options
+            )
 
             url = f"https://www.104.com.tw/jobs/search/?keyword={job_keyword}"
             driver.get(url)
             time.sleep(5)
 
-            job_cards = driver.find_elements(By.CSS_SELECTOR, 'div.job-card')
+            job_cards = driver.find_elements(By.CSS_SELECTOR, "article.b-block--top-bord")
 
             count = 0
             for card in job_cards:
                 try:
                     title_elem = card.find_element(By.CSS_SELECTOR, 'a.js-job-link')
-                    title = title_elem.text
-                    link = title_elem.get_attribute('href')
+                    title = title_elem.text.strip()
+                    link = title_elem.get_attribute('href').split("?")[0]  # 只保留主要網址
 
-                    company_elem = card.find_element(By.CSS_SELECTOR, 'div.company-name-link')
-                    company = company_elem.text
+                    company_elem = card.find_element(By.CSS_SELECTOR, 'a[href*="company"]')
+                    company = company_elem.text.strip()
 
-                    detail_elem = card.find_element(By.CSS_SELECTOR, 'div.tags')
-                    detail = detail_elem.text
+                    detail_elems = card.find_elements(By.CSS_SELECTOR, 'ul.b-list-inline__items li')
+                    details = "、".join([d.text for d in detail_elems]) if detail_elems else ""
 
-                    info += f"● {title}（公司：{company}）\n📍 {detail}\n👉 {link}\n\n"
+                    info += f"● {title}（公司：{company}）\n📍 {details}\n👉 {link}\n\n"
                     count += 1
                     if count >= 3:
                         break
-                except Exception as e:
+                except Exception:
                     continue
 
             if count == 0:
@@ -204,13 +209,49 @@ def webhook():
 
         return make_response(jsonify({"fulfillmentText": info}))
 
+    elif action == "getStockInfo":
+        stock_no = req.get("queryResult", {}).get("parameters", {}).get("stock_no", "").strip()
+        if not stock_no:
+            return make_response(jsonify({
+                "fulfillmentText": "❗ 請提供股票代號（例如 2330、2317）。"
+            }))
 
+        today = datetime.now()
+        date_str = today.strftime("%Y%m01")   
+        twse_url = (
+            f"https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json"
+            f"&date={date_str}&stockNo={stock_no}"
+        )
+
+        try:
+            resp = requests.get(twse_url)
+            data = resp.json()
+
+            if data.get("stat") == "OK":
+                latest_record = data["data"][0]
+                closing_price = latest_record[6]
+                trade_date = latest_record[0]
+                reply = (
+                    f"📈 股票代號：{stock_no}\n"
+                    f"📅 最近交易日：{trade_date}\n"
+                    f"💰 收盤價：{closing_price} 元\n"
+                )
+            else:
+                reply = f"❌ 找不到股票 {stock_no} 的資料，請確認代號是否正確。"
+
+        except Exception as e:
+            reply = f"⚠️ 取得股市資料時發生錯誤：{str(e)}"
+
+        return make_response(jsonify({"fulfillmentText": reply}))
 
     elif action == "input.unknown":
         info = req["queryResult"]["queryText"]
         api_key = os.getenv("API_KEY")
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.0-flash', generation_config={"max_output_tokens": 128})
+        model = genai.GenerativeModel(
+            'gemini-2.0-flash',
+            generation_config={"max_output_tokens": 128}
+        )
         response = model.generate_content(info)
         reply = response.text
 
@@ -222,15 +263,13 @@ def webhook():
 @app.route("/DispNews", methods=["GET", "POST"])
 def DispNews():
     if request.method == "POST":
-        keyword = request.form["NewsKeyword"].lower()
-        db = firestore.client()
+        keyword = request.form["NewsKeyword"].lower().strip()
         docs = db.collection("科技新聞總表").get()
         info = ""
 
         for item in docs:
             data = item.to_dict()
             title = data.get("title", "").lower()
-
             if keyword in title:
                 info += f"<b>標題：</b><a href='{data.get('link', '#')}' target='_blank'>{data.get('title')}</a><br>"
                 info += f"<b>來源：</b>{data.get('source', '未知')}<br>"
@@ -243,9 +282,8 @@ def DispNews():
             info = "❌ 沒有找到符合關鍵字的新聞。"
 
         return info
-
     else:
-        return render_template("news.html")  
+        return render_template("news.html")
 
 
 if __name__ == "__main__":
