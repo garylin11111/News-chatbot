@@ -156,9 +156,10 @@ def webhook():
         api_url = f"https://www.104.com.tw/jobs/search/list?ro=0&keyword={job_keyword}&order=1&asc=0&page=1&mode=s&jobsource=2018indexpoc"
 
         headers = {
-            "User-Agent": "Mozilla/5.0",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
             "Referer": "https://www.104.com.tw/jobs/search/",
-            "Accept": "application/json, text/javascript, */*; q=0.01"
+            "Accept": "application/json, text/javascript, */*; q=0.01",
+            "X-Requested-With": "XMLHttpRequest"
         }
 
         try:
@@ -171,6 +172,10 @@ def webhook():
             else:
                 count = 0
                 for job in jobs:
+                    # 必要欄位確認
+                    if not job.get("job_name") or not job.get("job_id"):
+                        continue
+
                     title = job.get("job_name", "職缺未提供")
                     company = job.get("cust_name", "公司未提供")
                     address = job.get("job_addr_no_descript", "地點未提供")
@@ -188,6 +193,7 @@ def webhook():
             info = f"⚠️ 發生錯誤：{str(e)}"
 
         return make_response(jsonify({"fulfillmentText": info}))
+
 
 
 
