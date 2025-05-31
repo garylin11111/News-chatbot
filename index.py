@@ -210,10 +210,26 @@ def webhook():
         return make_response(jsonify({"fulfillmentText": info}))
 
     elif action == "getStockInfo":
-        stock_no = req.get("queryResult", {}).get("parameters", {}).get("stock_no", "").strip()
-        if not stock_no:
+        stock_input = req.get("queryResult", {}).get("parameters", {}).get("stock_no", "").strip()
+
+        stock_mapping = {
+            "台積電": "2330",
+            "鴻海": "2317",
+            "聯發科": "2454",
+            "聯電": "2303",
+            "中華電信": "2412",
+            "大立光": "3008",
+            "長榮": "2603",
+            "陽明": "2609",
+            "萬海": "2615",
+            "中鋼": "2002"
+        }
+
+        stock_no = stock_mapping.get(stock_input, stock_input)
+
+        if not stock_no.isdigit():
             return make_response(jsonify({
-                "fulfillmentText": "❗ 請提供股票代號（例如 2330、2317）。"
+                "fulfillmentText": f"❗ 請提供正確的股票代號或常見公司名稱（如：台積電、鴻海）。"
             }))
 
         today = datetime.now()
@@ -228,16 +244,19 @@ def webhook():
             data = resp.json()
 
             if data.get("stat") == "OK" and data.get("data"):
-                latest_record = data["data"][0]
+                latest_record = data["data"][-1] 
                 closing_price = latest_record[6]
                 trade_date = latest_record[0]
+
                 reply = (
-                    f"📈 股票代號：{stock_no}\n"
+                    f"📈 股票代號：{stock_no}（{stock_input if stock_input != stock_no else '查詢代碼'}）\n"
                     f"📅 最近交易日：{trade_date}\n"
                     f"💰 收盤價：{closing_price} 元\n"
                 )
+            elif data.get("stat") != "OK":
+                reply = f"❌ 查詢失敗：{data.get('stat')}"
             else:
-                reply = f"❌ 找不到股票 {stock_no} 的資料，請確認代號是否正確。"
+                reply = f"❌ 找不到股票 {stock_no} 的資料，可能是目前尚未有交易記錄或代碼錯誤。"
 
         except Exception as e:
             reply = f"⚠️ 取得股市資料時發生錯誤：{str(e)}"
