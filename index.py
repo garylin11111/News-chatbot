@@ -158,57 +158,6 @@ def webhook():
 
         return make_response(jsonify({"fulfillmentText": info + result}))
 
-    elif action == "getJobInfo":
-        job_keyword = req.get("queryResult", {}).get("parameters", {}).get("job_keyword", "").strip()
-        info = f"🔍 關鍵字：{job_keyword}\n\n"
-
-        try:
-            chrome_options = Options()
-            chrome_options.add_argument("--headless")
-            chrome_options.add_argument("--no-sandbox")
-            chrome_options.add_argument("--disable-dev-shm-usage")
-
-            driver = webdriver.Chrome(
-                service=Service(ChromeDriverManager().install()),
-                options=chrome_options
-            )
-
-            url = f"https://www.104.com.tw/jobs/search/?keyword={job_keyword}"
-            driver.get(url)
-            time.sleep(5)
-
-            job_cards = driver.find_elements(By.CSS_SELECTOR, "article.b-block--top-bord")
-
-            count = 0
-            for card in job_cards:
-                try:
-                    title_elem = card.find_element(By.CSS_SELECTOR, 'a.js-job-link')
-                    title = title_elem.text.strip()
-                    link = title_elem.get_attribute('href').split("?")[0]  # 只保留主要網址
-
-                    company_elem = card.find_element(By.CSS_SELECTOR, 'a[href*="company"]')
-                    company = company_elem.text.strip()
-
-                    detail_elems = card.find_elements(By.CSS_SELECTOR, 'ul.b-list-inline__items li')
-                    details = "、".join([d.text for d in detail_elems]) if detail_elems else ""
-
-                    info += f"● {title}（公司：{company}）\n📍 {details}\n👉 {link}\n\n"
-                    count += 1
-                    if count >= 3:
-                        break
-                except Exception:
-                    continue
-
-            if count == 0:
-                info += "❌ 找不到符合的職缺，請換個關鍵字試試看。"
-
-            driver.quit()
-
-        except Exception as e:
-            info = f"⚠️ 發生錯誤：{str(e)}"
-
-        return make_response(jsonify({"fulfillmentText": info}))
-
     elif action == "getStockInfo":
         stock_input = req.get("queryResult").get("parameters").get("stock_no", "").strip()
 
