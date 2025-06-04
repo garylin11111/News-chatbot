@@ -14,25 +14,6 @@
         }
     </style>
 </head>
-<style>
-  df-messenger {
-    --df-messenger-bot-message: #0f172a;
-    --df-messenger-button-titlebar-color: #06b6d4;
-    --df-messenger-chat-background-color: #1e293b;
-    --df-messenger-font-color: white;
-    --df-messenger-send-icon: #06b6d4;
-    --df-messenger-user-message: #334155;
-
-    position: fixed;
-    left: 20px; 
-    bottom: 35%;
-    z-index: 999;
-  }
-
-  df-messenger::part(chat-frame) {
-    margin-left: 0;
-  }
-</style>
 <body class="min-h-screen flex flex-col">
     <header class="bg-gray-900 text-cyan-400 shadow-md py-4 px-6">
         <h1 class="text-3xl font-semibold">🌐 歡迎來到 AI 科技新聞平台</h1>
@@ -52,16 +33,23 @@
     </df-messenger>
 
     <style>
-      df-messenger {
-        --df-messenger-bot-message: #0f172a;
-        --df-messenger-button-titlebar-color: #06b6d4;
-        --df-messenger-chat-background-color: #1e293b;
-        --df-messenger-font-color: white;
-        --df-messenger-send-icon: #06b6d4;
-        --df-messenger-user-message: #334155;
-        right: 20px;
-        bottom: 30px;
-      }
+        df-messenger {
+            --df-messenger-bot-message: #0f172a;
+            --df-messenger-button-titlebar-color: #06b6d4;
+            --df-messenger-chat-background-color: #1e293b;
+            --df-messenger-font-color: white;
+            --df-messenger-send-icon: #06b6d4;
+            --df-messenger-user-message: #334155;
+
+            position: fixed;
+            left: 20px; 
+            bottom: 35%;
+            z-index: 999;
+        }
+
+        df-messenger::part(chat-frame) {
+            margin-left: 0;
+        }
     </style>
 
     <footer class="bg-gray-900 text-gray-500 text-center py-4">
