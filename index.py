@@ -25,7 +25,7 @@ import time
 app = Flask(__name__)
 
 @app.route("/")
-# def index():
+def index():
 #     homepage = "<h2>科技新聞聊天機器人</h2>"
 #     homepage += "<a href='/news'>爬取科技新聞並存入Firebase</a><br>"
 #     homepage += "<a href='/DispNews'>查詢科技新聞</a><br>"
