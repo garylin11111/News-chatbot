@@ -46,31 +46,39 @@
     language-code="zh-tw">
   </df-messenger>
 
+  <!-- 定位 chatbot 按鈕與對話框到左側中間 -->
   <script>
     window.addEventListener('DOMContentLoaded', () => {
-      const waitForMessenger = setInterval(() => {
-        const messengerFrame = document.querySelector('df-messenger');
-        const styleShadow = messengerFrame.shadowRoot?.querySelector('df-messenger-chat')?.shadowRoot;
+      const interval = setInterval(() => {
+        const messenger = document.querySelector('df-messenger');
+        if (!messenger) return;
 
-        if (styleShadow) {
-          const fab = styleShadow.querySelector('.df-messenger-launcher');
-          if (fab) {
-            fab.style.position = 'fixed';
-            fab.style.left = '20px';
-            fab.style.bottom = '40%';
-            fab.style.right = 'unset';
-          }
+        const shadowRoot = messenger.shadowRoot;
+        if (!shadowRoot) return;
 
-          const iframe = styleShadow.querySelector('iframe');
-          if (iframe) {
-            iframe.style.position = 'fixed';
-            iframe.style.left = '20px';
-            iframe.style.bottom = '20%';
-            iframe.style.right = 'unset';
-          }
+        const chatWrapper = shadowRoot.querySelector('df-messenger-chat');
+        if (!chatWrapper || !chatWrapper.shadowRoot) return;
 
-          clearInterval(waitForMessenger);
+        const launcher = chatWrapper.shadowRoot.querySelector('.df-messenger-launcher');
+        const iframe = chatWrapper.shadowRoot.querySelector('iframe');
+
+        if (launcher) {
+          launcher.style.right = 'unset';
+          launcher.style.left = '20px';
+          launcher.style.bottom = '40%';
+          launcher.style.position = 'fixed';
+          launcher.style.zIndex = '9999';
         }
+
+        if (iframe) {
+          iframe.style.right = 'unset';
+          iframe.style.left = '20px';
+          iframe.style.bottom = '20%';
+          iframe.style.position = 'fixed';
+          iframe.style.zIndex = '9999';
+        }
+
+        clearInterval(interval);
       }, 500);
     });
   </script>
