@@ -1,14 +1,56 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>新聞查詢</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Tech News</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+    </style>
 </head>
-<body>
-    <h2>新聞查詢</h2>
-    <form method="POST" action="/DispNews">
-        請輸入關鍵字：<input type="text" name="NewsKeyword">
-        <input type="submit" value="查詢新聞">
-    </form>
+<body class="min-h-screen flex flex-col">
+    <header class="bg-gray-900 text-cyan-400 shadow-md py-4 px-6">
+        <h1 class="text-2xl font-semibold">🧠 AI Tech News Chatbot</h1>
+    </header>
+
+    <main class="flex-grow container mx-auto px-6 py-8">
+        <form action="/" method="post" class="mb-8">
+            <label for="question" class="block text-lg mb-2 text-cyan-300">Ask about tech news:</label>
+            <input type="text" name="question" id="question" placeholder="e.g. What's new in AI this week?"
+                   class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+            <button type="submit"
+                    class="mt-4 px-6 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition">Ask</button>
+        </form>
+
+        {% if answer %}
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold text-cyan-400 mb-2">Chatbot Response</h2>
+            <p class="text-gray-300">{{ answer }}</p>
+        </div>
+        {% endif %}
+
+        {% if articles %}
+        <h2 class="text-xl font-semibold text-cyan-300 mb-4">📰 Latest News</h2>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for article in articles %}
+            <div class="bg-gray-800 p-4 rounded-xl shadow-md border border-gray-700 hover:shadow-lg transition">
+                <h3 class="text-lg font-bold text-white mb-2">{{ article['title'] }}</h3>
+                <p class="text-gray-400 text-sm mb-2">{{ article['source'] }}</p>
+                <a href="{{ article['link'] }}" target="_blank" class="text-cyan-400 hover:underline">Read more →</a>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </main>
+
+    <footer class="bg-gray-900 text-gray-500 text-center py-4">
+        © 2025 News Chatbot | Powered by Flask + AI
+    </footer>
 </body>
 </html>
