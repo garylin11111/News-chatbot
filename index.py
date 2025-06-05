@@ -27,7 +27,6 @@ db = firestore.client()
 @app.route("/")
 def index():
     return render_template('index.html')
-
 @app.route("/news")
 def news():
     count = 0
@@ -56,59 +55,42 @@ def news():
         time_tag = parent.find("span", class_="date") if parent else None
         pub_time = time_tag.text.strip() if time_tag else ""
 
+        now = datetime.now()
+        try:
+            # 嘗試解析格式：6/5 09:48
+            pub_dt = datetime.strptime(pub_time, "%m/%d %H:%M")
+            pub_dt = pub_dt.replace(year=now.year)
+            if pub_dt > now:
+                pub_dt = pub_dt.replace(year=now.year - 1)
+            timestamp = pub_dt.replace(tzinfo=timezone.utc)
+        except:
+            # 嘗試解析格式：9分鐘前 / 3小時前
+            match = re.match(r"(\d+)(分鐘|小時)前", pub_time)
+            if match:
+                amount = int(match.group(1))
+                unit = match.group(2)
+                if unit == "分鐘":
+                    timestamp = datetime.now(timezone.utc) - timedelta(minutes=amount)
+                elif unit == "小時":
+                    timestamp = datetime.now(timezone.utc) - timedelta(hours=amount)
+                else:
+                    timestamp = datetime.now(timezone.utc)
+            else:
+                timestamp = datetime.now(timezone.utc)
+
         db.collection("科技新聞總表").add({
             "title": title,
             "link": link,
             "image": img_url,
             "source": "ETtoday",
             "time": pub_time,
-            "timestamp": datetime.now(timezone.utc)
-        })
-        count += 1
-
-    # TechNews
-    url_technews = "https://technews.tw/"
-    r2 = requests.get(url_technews, headers=headers)
-    r2.encoding = "utf-8"
-    soup2 = BeautifulSoup(r2.text, "html.parser")
-    tech_news = soup2.select("header.entry-header h1.entry-title a")
-
-    for tag in tech_news[:20]:
-        title = tag.text.strip()
-        link = tag.get("href", "").strip()
-        db.collection("科技新聞總表").add({
-            "title": title,
-            "link": link,
-            "image": img_url,
-            "source": "TechNews",
-            "time": pub_time,
-            "timestamp": datetime.now(timezone.utc)
-        })
-        count += 1
-
-    # LTN
-    url_ltn = "https://3c.ltn.com.tw/"
-    r3 = requests.get(url_ltn, headers=headers)
-    r3.encoding = "utf-8"
-    soup3 = BeautifulSoup(r3.text, "html.parser")
-    ltn_news = soup3.select("ul.list li a")
-
-    for tag in ltn_news[:20]:
-        title = tag.text.strip()
-        link = tag.get("href", "").strip()
-        if link.startswith("/"):
-            link = "https://3c.ltn.com.tw" + link
-        db.collection("科技新聞總表").add({
-            "title": title,
-            "link": link,
-            "image": img_url,
-            "source": "自由時報 3C",
-            "time": pub_time,
-            "timestamp": datetime.now(timezone.utc)
+            "timestamp": timestamp
         })
         count += 1
 
     return f"共寫入 {count} 筆科技新聞（多來源）到 Firebase。"
+
+    
 @app.route("/DispNews", methods=["GET", "POST"])
 def DispNews():
     if request.method == "POST":
