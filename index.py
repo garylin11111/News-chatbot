@@ -40,8 +40,10 @@ def news():
         count = 0
         headers = {"User-Agent": "Mozilla/5.0"}
 
+        import urllib3
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         url_et = "https://www.ettoday.net/news/focus/AI%E7%A7%91%E6%8A%80/"
-        r = requests.get(url_et, headers=headers)
+        r = requests.get(url_et, headers=headers, verify=False)
         r.encoding = "utf-8"
         soup = BeautifulSoup(r.text, "html.parser")
         et_news = soup.select("a.pic")
