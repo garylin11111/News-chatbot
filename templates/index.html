@@ -33,8 +33,8 @@
   </header>
 
   <main class="flex-grow flex flex-col items-center justify-center text-center px-4">
-    <h2 class="text-xl md:text-2xl font-semibold mt-10">探索最新科技新聞、與 AI 對話、獲得即時洞察</h2>
-    <a href="/news" class="mt-8 inline-block bg-cyan-500 text-white px-6 py-3 rounded-full hover:bg-cyan-600 transition">更新新聞資料庫</a>
+    <h2 class="text-xl md:text-2xl  text-black font-semibold mt-10">探索最新科技新聞、與 AI 對話、獲得即時洞察</h2>
+    <a href="/news" class="mt-8 inline-block bg-cyan-500 text-black px-6 py-3 rounded-full hover:bg-cyan-600 transition">更新新聞資料庫</a>
   </main>
 
   <footer class="bg-gray-900 text-center p-4 text-sm text-gray-400">
@@ -50,42 +50,7 @@
     language-code="zh-tw">
   </df-messenger>
 
-  <!-- 定位 chatbot 按鈕與對話框到左側中間 -->
-  <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      const interval = setInterval(() => {
-        const messenger = document.querySelector('df-messenger');
-        if (!messenger) return;
-
-        const shadowRoot = messenger.shadowRoot;
-        if (!shadowRoot) return;
-
-        const chatWrapper = shadowRoot.querySelector('df-messenger-chat');
-        if (!chatWrapper || !chatWrapper.shadowRoot) return;
-
-        const launcher = chatWrapper.shadowRoot.querySelector('.df-messenger-launcher');
-        const iframe = chatWrapper.shadowRoot.querySelector('iframe');
-
-        if (launcher) {
-          launcher.style.right = 'unset';
-          launcher.style.left = '20px';
-          launcher.style.bottom = '40%';
-          launcher.style.position = 'fixed';
-          launcher.style.zIndex = '9999';
-        }
-
-        if (iframe) {
-          iframe.style.right = 'unset';
-          iframe.style.left = '20px';
-          iframe.style.bottom = '20%';
-          iframe.style.position = 'fixed';
-          iframe.style.zIndex = '9999';
-        }
-
-        clearInterval(interval);
-      }, 500);
-    });
-  </script>
+  
 </body>
 
 </html>
