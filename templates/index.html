@@ -41,7 +41,7 @@
       <div class="flex flex-col lg:flex-row items-center gap-8">
         <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d" alt="科技圖片" class="w-full lg:w-1/2 rounded-xl shadow-xl">
         <div class="text-left">
-          <p class="text-lg leading-relaxed">
+          <p class="text-lg leading-relaxed text-black">
             近年來，科技的快速發展對社會與產業造成了深遠的影響，尤其在人工智慧、量子運算、5G與6G通訊、區塊鏈、永續科技等領域呈現爆炸性成長。人工智慧與機器學習已被廣泛應用於醫療診斷、自動駕駛、金融分析及個人化推薦等場景；ChatGPT 等生成式 AI 工具更改變了內容創作的生態。
             <br><br>
             同時，隨著量子電腦的實用化逐步成形，它將有潛力破解現有加密系統，並改變密碼學、藥物設計與天氣預測等領域。通訊技術方面，5G 已進入商用階段，6G 正在研發，將帶來更高速、更低延遲的應用場景，例如遠端手術與全息投影。
@@ -59,7 +59,7 @@
       <p class="text-sm text-gray-300 mb-4">掃描下方 QR Code，快速接收最新科技新聞與互動服務：</p>
       <div class="w-full flex justify-center">
         <div class="w-40 h-40 bg-white rounded-lg flex items-center justify-center">
-          <img src="QRcode.png" alt="Line Bot QR Code" class="w-full h-full object-contain rounded-lg">
+          <img src="{{ url_for('static', filename='QRcode.png') }}" alt="Line Bot QR Code" class="w-full h-full object-contain rounded-lg">
         </div>
       </div>
     </section>
