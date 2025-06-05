@@ -5,12 +5,8 @@ import json
 
 import firebase_admin
 from firebase_admin import credentials, firestore
-cred = credentials.Certificate("newschatbotkey.json")
-firebase_admin.initialize_app(cred)
-db = firestore.client()
-
 from flask import Flask, render_template, request, make_response, jsonify
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import os
 import google.generativeai as genai
@@ -24,29 +20,21 @@ import time
 
 app = Flask(__name__)
 
+cred = credentials.Certificate("newschatbotkey.json")
+firebase_admin.initialize_app(cred)
+db = firestore.client()
+
 @app.route("/")
 def index():
-#     homepage = "<h2>科技新聞聊天機器人</h2>"
-#     homepage += "<a href='/news'>爬取科技新聞並存入Firebase</a><br>"
-#     homepage += "<a href='/DispNews'>查詢科技新聞</a><br>"
-
-#     homepage += (
-#         '<script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1">'
-#         '</script>'
-#         '<df-messenger intent="WELCOME" chat-title="林政彥" '
-#         'agent-id="095d9a8b-87f0-48b6-9d86-97f40bb73458" '
-#         'language-code="zh-tw"></df-messenger> '
-#     )
-
     return render_template('index.html')
-
 
 @app.route("/news")
 def news():
     count = 0
-
-    url_et = "https://www.ettoday.net/news/focus/AI%E7%A7%91%E6%8A%80/"
     headers = {"User-Agent": "Mozilla/5.0"}
+
+    # ETtoday
+    url_et = "https://www.ettoday.net/news/focus/AI%E7%A7%91%E6%8A%80/"
     r = requests.get(url_et, headers=headers)
     r.encoding = "utf-8"
     soup = BeautifulSoup(r.text, "html.parser")
@@ -73,10 +61,12 @@ def news():
             "link": link,
             "image": img_url,
             "source": "ETtoday",
-            "time": pub_time
+            "time": pub_time,
+            "timestamp": datetime.now(timezone.utc)
         })
         count += 1
 
+    # TechNews
     url_technews = "https://technews.tw/"
     r2 = requests.get(url_technews, headers=headers)
     r2.encoding = "utf-8"
@@ -91,10 +81,12 @@ def news():
             "link": link,
             "image": img_url,
             "source": "TechNews",
-            "time": pub_time
+            "time": pub_time,
+            "timestamp": datetime.now(timezone.utc)
         })
         count += 1
 
+    # LTN
     url_ltn = "https://3c.ltn.com.tw/"
     r3 = requests.get(url_ltn, headers=headers)
     r3.encoding = "utf-8"
@@ -111,12 +103,46 @@ def news():
             "link": link,
             "image": img_url,
             "source": "自由時報 3C",
-            "time": pub_time
+            "time": pub_time,
+            "timestamp": datetime.now(timezone.utc)
         })
         count += 1
 
     return f"共寫入 {count} 筆科技新聞（多來源）到 Firebase。"
 
+@app.route("/DispNews", methods=["GET", "POST"])
+def DispNews():
+    if request.method == "POST":
+        keyword = request.form["NewsKeyword"].lower().strip()
+        docs = db.collection("科技新聞總表").order_by("timestamp", direction=firestore.Query.DESCENDING).get()
+        info = ""
+
+        for item in docs:
+            data = item.to_dict()
+            title = data.get("title", "").lower()
+            if keyword in title:
+                timestamp = data.get("timestamp")
+                if isinstance(timestamp, datetime):
+                    now = datetime.now(timezone.utc)
+                    diff = now - timestamp
+                    minutes_ago = int(diff.total_seconds() / 60)
+                    time_info = f"{minutes_ago} 分鐘前" if minutes_ago < 60 else timestamp.astimezone().strftime('%Y-%m-%d %H:%M')
+                else:
+                    time_info = data.get("time", "無時間資訊")
+
+                info += f"<b>標題：</b><a href='{data.get('link', '#')}' target='_blank'>{data.get('title')}</a><br>"
+                info += f"<b>來源：</b>{data.get('source', '未知')}<br>"
+                info += f"<b>時間：</b>{time_info}<br>"
+                if data.get("image"):
+                    info += f"<img src='{data['image']}' width='300'><br>"
+                info += "<hr>"
+
+        if not info:
+            info = "❌ 沒有找到符合關鍵字的新聞。"
+
+        return info
+    else:
+        return render_template("news.html")
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
@@ -267,31 +293,6 @@ def webhook():
 
     return make_response(jsonify({"fulfillmentText": "⚠️ 目前無法處理這個請求"}))
 
-
-@app.route("/DispNews", methods=["GET", "POST"])
-def DispNews():
-    if request.method == "POST":
-        keyword = request.form["NewsKeyword"].lower().strip()
-        docs = db.collection("科技新聞總表").get()
-        info = ""
-
-        for item in docs:
-            data = item.to_dict()
-            title = data.get("title", "").lower()
-            if keyword in title:
-                info += f"<b>標題：</b><a href='{data.get('link', '#')}' target='_blank'>{data.get('title')}</a><br>"
-                info += f"<b>來源：</b>{data.get('source', '未知')}<br>"
-                info += f"<b>時間：</b>{data.get('time', '無時間資訊')}<br>"
-                if data.get("image"):
-                    info += f"<img src='{data['image']}' width='300'><br>"
-                info += "<hr>"
-
-        if not info:
-            info = "❌ 沒有找到符合關鍵字的新聞。"
-
-        return info
-    else:
-        return render_template("news.html")
 
 @app.route("/AI")
 def AI():
