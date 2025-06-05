@@ -30,66 +30,79 @@ db = firestore.client()
 def index():
     return render_template('index.html')
 
-
 @app.route("/news")
 def news():
-    count = 0
-    headers = {"User-Agent": "Mozilla/5.0"}
+    import traceback
+    import re
+    from datetime import datetime, timedelta, timezone
 
-    url_et = "https://www.ettoday.net/news/focus/AI%E7%A7%91%E6%8A%80/"
-    r = requests.get(url_et, headers=headers)
-    r.encoding = "utf-8"
-    soup = BeautifulSoup(r.text, "html.parser")
-    et_news = soup.select("a.pic")
+    try:
+        count = 0
+        headers = {"User-Agent": "Mozilla/5.0"}
 
-    for tag in et_news:
-        title = tag.get("title", "").strip()
-        link = tag.get("href", "").strip()
-        img_tag = tag.find("img")
-        img_url = img_tag.get("data-original") or img_tag.get("src") if img_tag else ""
-        if img_url.startswith("//"):
-            img_url = "https:" + img_url
-        if link.startswith("//"):
-            link = "https:" + link
-        elif link.startswith("/"):
-            link = "https://www.ettoday.net" + link
+        url_et = "https://www.ettoday.net/news/focus/AI%E7%A7%91%E6%8A%80/"
+        r = requests.get(url_et, headers=headers)
+        r.encoding = "utf-8"
+        soup = BeautifulSoup(r.text, "html.parser")
+        et_news = soup.select("a.pic")
 
-        parent = tag.find_parent("div", class_="piece")
-        time_tag = parent.find("span", class_="date") if parent else None
-        pub_time = time_tag.text.strip() if time_tag else ""
+        for tag in et_news:
+            title = tag.get("title", "").strip()
+            link = tag.get("href", "").strip()
+            img_tag = tag.find("img")
+            img_url = img_tag.get("data-original") or img_tag.get("src") if img_tag else ""
+            if img_url.startswith("//"):
+                img_url = "https:" + img_url
+            if link.startswith("//"):
+                link = "https:" + link
+            elif link.startswith("/"):
+                link = "https://www.ettoday.net" + link
 
-        now = datetime.now()
-        try:
-            pub_dt = datetime.strptime(pub_time, "%m/%d %H:%M")
-            pub_dt = pub_dt.replace(year=now.year)
-            if pub_dt > now:
-                pub_dt = pub_dt.replace(year=now.year - 1)
-            timestamp = pub_dt.replace(tzinfo=timezone.utc)
-        except:
-            match = re.match(r"(\d+)(分鐘|小時)前", pub_time)
-            if match:
-                amount = int(match.group(1))
-                unit = match.group(2)
-                if unit == "分鐘":
-                    timestamp = datetime.now(timezone.utc) - timedelta(minutes=amount)
-                elif unit == "小時":
-                    timestamp = datetime.now(timezone.utc) - timedelta(hours=amount)
+            parent = tag.find_parent("div", class_="piece")
+            time_tag = parent.find("span", class_="date") if parent else None
+            pub_time = time_tag.text.strip() if time_tag else ""
+
+            now = datetime.now()
+            try:
+                pub_dt = datetime.strptime(pub_time, "%m/%d %H:%M")
+                pub_dt = pub_dt.replace(year=now.year)
+                if pub_dt > now:
+                    pub_dt = pub_dt.replace(year=now.year - 1)
+                timestamp = pub_dt.replace(tzinfo=timezone.utc)
+            except:
+                match = re.match(r"(\d+)(分鐘|小時)前", pub_time)
+                if match:
+                    amount = int(match.group(1))
+                    unit = match.group(2)
+                    if unit == "分鐘":
+                        timestamp = datetime.now(timezone.utc) - timedelta(minutes=amount)
+                    elif unit == "小時":
+                        timestamp = datetime.now(timezone.utc) - timedelta(hours=amount)
+                    else:
+                        timestamp = datetime.now(timezone.utc)
                 else:
                     timestamp = datetime.now(timezone.utc)
-            else:
-                timestamp = datetime.now(timezone.utc)
 
-        db.collection("科技新聞總表").add({
-            "title": title,
-            "link": link,
-            "image": img_url,
-            "source": "ETtoday",
-            "time": pub_time,
-            "timestamp": timestamp
-        })
-        count += 1
+            # 嘗試寫入 Firebase
+            db.collection("科技新聞總表").add({
+                "title": title,
+                "link": link,
+                "image": img_url,
+                "source": "ETtoday",
+                "time": pub_time,
+                "timestamp": timestamp
+            })
 
-    print(f"寫入第 {count} 筆：{title}")
+            count += 1
+            print(f"✅ 寫入第 {count} 筆：{title}")
+
+        return f"✅ 共寫入 {count} 筆科技新聞到 Firebase。"
+
+    except Exception as e:
+        print("❌ 發生例外錯誤：")
+        print(traceback.format_exc())
+        return f"❌ 內部錯誤：{str(e)}"
+
 
 
 @app.route("/DispNews", methods=["GET", "POST"])
