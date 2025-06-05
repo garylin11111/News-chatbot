@@ -109,24 +109,32 @@ def news():
         count += 1
 
     return f"共寫入 {count} 筆科技新聞（多來源）到 Firebase。"
-
 @app.route("/DispNews", methods=["GET", "POST"])
 def DispNews():
     if request.method == "POST":
         keyword = request.form["NewsKeyword"].lower().strip()
-        docs = db.collection("科技新聞總表").order_by("timestamp", direction=firestore.Query.DESCENDING).get()
-        info = ""
+        docs = db.collection("科技新聞總表")\
+                 .order_by("timestamp", direction=firestore.Query.DESCENDING)\
+                 .get()
 
+        info = ""
         for item in docs:
             data = item.to_dict()
             title = data.get("title", "").lower()
+
             if keyword in title:
                 timestamp = data.get("timestamp")
                 if isinstance(timestamp, datetime):
                     now = datetime.now(timezone.utc)
                     diff = now - timestamp
                     minutes_ago = int(diff.total_seconds() / 60)
-                    time_info = f"{minutes_ago} 分鐘前" if minutes_ago < 60 else timestamp.astimezone().strftime('%Y-%m-%d %H:%M')
+                    if minutes_ago < 60:
+                        time_info = f"{minutes_ago} 分鐘前"
+                    elif minutes_ago < 1440:
+                        hours_ago = minutes_ago // 60
+                        time_info = f"{hours_ago} 小時前"
+                    else:
+                        time_info = timestamp.astimezone().strftime('%Y-%m-%d %H:%M')
                 else:
                     time_info = data.get("time", "無時間資訊")
 
@@ -139,8 +147,8 @@ def DispNews():
 
         if not info:
             info = "❌ 沒有找到符合關鍵字的新聞。"
-
         return info
+
     else:
         return render_template("news.html")
 
