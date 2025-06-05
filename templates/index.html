@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-TW" class="transition-colors duration-500">
+<html lang="zh-TW">
 
 <head>
   <meta charset="UTF-8">
@@ -8,38 +8,14 @@
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <script>
     function toggleDarkMode() {
-  const root = document.documentElement;
-  const button = document.getElementById('themeToggle');
-  const isDark = root.classList.toggle('dark');
-  localStorage.setItem('theme', isDark ? 'dark' : 'light');
-  button.innerText = isDark ? '☀️' : '🌙';
-}
-
-    window.addEventListener('DOMContentLoaded', () => {
-  const savedTheme = localStorage.getItem('theme');
-  const button = document.getElementById('themeToggle');
-  if (savedTheme === 'dark') {
-    document.documentElement.classList.add('dark');
-    if (button) button.innerText = '☀️';
-  } else {
-    if (button) button.innerText = '🌙';
-  }
-});
-      }
-    });
+      document.documentElement.classList.toggle('dark');
+    }
   </script>
   <style>
     body {
       background: url('/static/background.jpg') no-repeat center center fixed;
       background-size: cover;
-    }
-    .dark body {
-      background-color: #0f172a;
-      background-blend-mode: multiply;
       color: white;
-    }
-    body, .dark body {
-      transition: background 0.5s, color 0.5s;
     }
     df-messenger {
       --df-messenger-bot-message: #0f172a;
@@ -52,13 +28,13 @@
   </style>
 </head>
 
-<body class="flex flex-col min-h-screen bg-white text-black dark:bg-gray-900 dark:text-white">
+<body class="flex flex-col min-h-screen">
   <header class="bg-gray-900 p-4 flex items-center justify-between">
     <div class="flex items-center">
       <img src="https://img.icons8.com/ios-filled/50/06b6d4/news.png" class="w-6 h-6 mr-2" />
-      <h1 class="text-2xl font-bold text-white">歡迎來到 AI 科技新聞平台</h1>
+      <h1 class="text-2xl font-bold">歡迎來到 AI 科技新聞平台</h1>
     </div>
-    <button id="themeToggle" onclick="toggleDarkMode()" class="text-lg font-semibold px-3 py-1 border rounded-lg bg-white text-black hover:bg-gray-200 dark:bg-gray-700 dark:text-white dark:border-white dark:hover:bg-gray-600 transition">🌙</button>
+    <button onclick="toggleDarkMode()" class="text-lg font-semibold px-3 py-1 border rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition">🌙</button>
   </header>
 
   <main class="flex-grow flex flex-col items-center justify-center text-center px-4">
