@@ -216,7 +216,7 @@ def webhook():
                 try:
                     title_elem = card.find_element(By.CSS_SELECTOR, 'a.js-job-link')
                     title = title_elem.text.strip()
-                    link = title_elem.get_attribute('href').split("?")[0]  # 只保留主要網址
+                    link = title_elem.get_attribute('href').split("?")[0]
 
                     company_elem = card.find_element(By.CSS_SELECTOR, 'a[href*="company"]')
                     company = company_elem.text.strip()
@@ -284,7 +284,18 @@ def webhook():
         except Exception as e:
             info = f"⚠️ 無法取得股票資料，錯誤訊息：{str(e)}"
 
-        return make_response(jsonify({"fulfillmentText": info}))
+        return make_response(jsonify({
+            "fulfillmentMessages": [
+                {"text": {"text": [info]}},
+                {
+                    "quickReplies": {
+                        "title": "你可以試試查詢以下股票：",
+                        "quickReplies": ["台積電", "鴻海", "聯發科", "聯電", "中華電信"]
+                    }
+                }
+            ]
+        }))
+
 
 
 
