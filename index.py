@@ -27,12 +27,13 @@ db = firestore.client()
 @app.route("/")
 def index():
     return render_template('index.html')
+
+    
 @app.route("/news")
 def news():
     count = 0
     headers = {"User-Agent": "Mozilla/5.0"}
 
-    # ETtoday
     url_et = "https://www.ettoday.net/news/focus/AI%E7%A7%91%E6%8A%80/"
     r = requests.get(url_et, headers=headers)
     r.encoding = "utf-8"
@@ -57,14 +58,12 @@ def news():
 
         now = datetime.now()
         try:
-            # 嘗試解析格式：6/5 09:48
             pub_dt = datetime.strptime(pub_time, "%m/%d %H:%M")
             pub_dt = pub_dt.replace(year=now.year)
             if pub_dt > now:
                 pub_dt = pub_dt.replace(year=now.year - 1)
             timestamp = pub_dt.replace(tzinfo=timezone.utc)
         except:
-            # 嘗試解析格式：9分鐘前 / 3小時前
             match = re.match(r"(\d+)(分鐘|小時)前", pub_time)
             if match:
                 amount = int(match.group(1))
@@ -88,9 +87,9 @@ def news():
         })
         count += 1
 
-    return f"共寫入 {count} 筆科技新聞（多來源）到 Firebase。"
+    print(f"寫入第 {count} 筆：{title}")
 
-    
+
 @app.route("/DispNews", methods=["GET", "POST"])
 def DispNews():
     if request.method == "POST":
