@@ -7,6 +7,8 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 from flask import Flask, render_template, request, make_response, jsonify
 from datetime import datetime, timedelta, timezone
+import re
+import traceback
 
 import os
 import google.generativeai as genai
@@ -28,7 +30,7 @@ db = firestore.client()
 def index():
     return render_template('index.html')
 
-    
+
 @app.route("/news")
 def news():
     count = 0
